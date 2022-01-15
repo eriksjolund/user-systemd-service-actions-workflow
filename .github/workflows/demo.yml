@@ -14,8 +14,8 @@ jobs:
           persist-credentials: false
       - name: Run a web server with podman in a user systemd service
         run: |
-          loginctl enable-linger runner
-          sleep 1
+          id
+          loginctl enable-linger $UID
           ls /run/user/$UID 
           podman pull docker.io/library/nginx:latest
           mkdir -p $HOME/.config/systemd/user
