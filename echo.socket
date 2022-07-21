@@ -1,0 +1,16 @@
+[Unit]
+Description=echo server
+
+[Socket]
+ListenStream=127.0.0.1:3000
+ListenDatagram=127.0.0.1:3000
+ListenStream=[::1]:3000
+ListenDatagram=[::1]:3000
+ListenStream=%h/echo_stream_sock
+
+# VMADDR_CID_ANY (-1U) = 2^32 -1 = 4294967295
+# See "man vsock"
+ListenStream=vsock:4294967295:3000
+
+[Install]
+WantedBy=default.target

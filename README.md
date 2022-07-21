@@ -1,34 +1,46 @@
 ### GitHub Actions workflow to demonstrate how to run a user systemd service
 
-Note that `loginctl enable-linger runner` needs to be followed by a `sleep`.
-One second seems to be enough (`sleep 1`).
+The tested echo server container [__ghcr.io/eriksjolund/socket-activate-echo__](https://github.com/eriksjolund/socket-activate-echo/pkgs/container/socket-activate-echo 
+) supports _socket activation_.
+
+Using [socket activation](https://github.com/containers/podman/blob/main/docs/tutorials/socket_activation.md) has
+the advantage that there is no need to use _/usr/bin/sleep_ or any while-loop that repeatedly checks whether it is possible
+to connect to a certain TCP port.
 
 The file [.github/workflows/demo.yml](.github/workflows/demo.yml) contains:
 
 ```
-name: Web server demo with podman and systemd
+name: Echo server demo with podman and systemd
 on: 
   push:
     branch:
       - main
 jobs:
-  systemd_podman_web_server_demo:
-    runs-on: ubuntu-20.04
+  systemd_podman_echo_server_demo:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - name: Run actions/checkout for this repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
-          path: checkout_testing
+          path: checkout
           persist-credentials: false
-      - name: Run a web server with podman in a user systemd service
+      - name: Run an echo server with podman in a user systemd service
         run: |
-          loginctl enable-linger runner
-          sleep 1
-          ls /run/user/$UID 
-          podman pull docker.io/library/nginx:latest
-          mkdir -p $HOME/.config/systemd/user
-          cp checkout_testing/webserver.service $HOME/.config/systemd/user
-          XDG_RUNTIME_DIR=/run/user/$UID systemctl --user enable --now webserver.service
-          sleep 1
-          curl http://localhost:8080
+          sudo apt-get update
+          sudo apt-get install -y socat
+          podman pull ghcr.io/eriksjolund/socket-activate-echo:latest
+          mkdir -p ~/.config/systemd/user
+          podman create --rm --name echo --network none ghcr.io/eriksjolund/socket-activate-echo
+          podman generate systemd --name --new echo > ~/.config/systemd/user/echo.service
+          cp checkout/echo.socket ~/.config/systemd/user/
+          systemctl --user daemon-reload
+          systemctl --user start echo.socket
+          echo hello tcp4 | socat - tcp4:127.0.0.1:3000
+          echo hello | socat - tcp6:[::1]:3000
+          echo hello | socat - udp4:127.0.0.1:3000
+          echo hello | socat - udp6:[::1]:3000
+          echo hello unix | socat - unix:$HOME/echo_stream_sock
+          echo hello | socat - VSOCK-CONNECT:1:3000
 ```
