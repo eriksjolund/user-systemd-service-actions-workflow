@@ -4,8 +4,7 @@ The tested echo server container [__ghcr.io/eriksjolund/socket-activate-echo__](
 ) supports _socket activation_.
 
 Using [socket activation](https://github.com/containers/podman/blob/main/docs/tutorials/socket_activation.md) has
-the advantage that there is no need to use _/usr/bin/sleep_ or any while-loop that repeatedly checks whether it is possible
-to connect to a certain TCP port.
+the advantage that there is no need for the client to use _/usr/bin/sleep_ combined with a while-loop to check if the server is online.
 
 The file [.github/workflows/demo.yml](.github/workflows/demo.yml) contains:
 
