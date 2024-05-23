@@ -5,7 +5,7 @@ on:
       - main
 jobs:
   systemd_podman_echo_server_demo:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     steps:
@@ -19,9 +19,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y socat
           podman pull ghcr.io/eriksjolund/socket-activate-echo:latest
+          mkdir -p ~/.config/containers/systemd
           mkdir -p ~/.config/systemd/user
-          podman create --rm --name echo --network none ghcr.io/eriksjolund/socket-activate-echo
-          podman generate systemd --name --new echo > ~/.config/systemd/user/echo.service
+          cp checkout/echo.container ~/.config/containers/systemd
           cp checkout/echo.socket ~/.config/systemd/user/
           systemctl --user daemon-reload
           systemctl --user start echo.socket

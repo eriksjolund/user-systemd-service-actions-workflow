@@ -1,0 +1,11 @@
+[Unit]
+Description=Example echo service
+Requires=echo.socket
+After=echo.socket
+
+[Container]
+Image=ghcr.io/eriksjolund/socket-activate-echo
+Network=none
+
+[Install]
+WantedBy=default.target
